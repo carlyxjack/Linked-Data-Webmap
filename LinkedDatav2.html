@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Intro to MapView - Create a 2D map</title>
+    <style>
+
+    </style>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
+    <link rel="stylesheet" href="extra.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://js.arcgis.com/4.10/"></script>
+
+
+
+    <script>
+        require([
+            // "esri/views/MapView",
+            "esri/views/SceneView",
+            "esri/WebScene",
+            "esri/widgets/Search",
+            "esri/layers/GraphicsLayer",
+            "esri/Graphic",
+            "esri/tasks/support/Query",
+            "esri/tasks/QueryTask",
+            "esri/geometry/Extent",
+            "dojo/i18n!esri/nls/common",
+            "esri/widgets/LayerList",
+            "esri/geometry/Polygon",
+            "esri/request",
+            "dojo/dom",
+            "dojo/on",
+            "dojo/domReady!"
+
+        ], function (SceneView, WebScene, Search, GraphicsLayer, Graphic, Query, QueryTask, Extent, i18n, LayerList, Polygon, esriRequest, dom, on, domReady) {
+
+
+            var Index = 0;
+            //   var resultsLayer = new GraphicsLayer({ title: "Results" }); 
+
+            //Create array of options to be added
+            var createList = function (array, idname) {
+                var idname = document.getElementById(idname);
+                //Create and append select list
+                var selectList = document.createElement("select");
+                selectList.setAttribute("id", "Select" + Index++);
+                idname.appendChild(selectList);
+
+                //Create and append the options
+                for (var i = 0; i < array.length; i++) {
+                    var option = document.createElement("option");
+                    option.setAttribute("value", array[i]);
+                    option.text = array[i];
+                    selectList.appendChild(option);
+
+
+                }
+
+            }
+            var arrayQuery = ["Bedrijfsvestigingen", "Aantal Inwoners", "Burgelijke Staat", "Geboorte/sterfte", "Geslacht", "Leeftijdsgroepen", "Particuliere Huishoudens", "Aardgasverbruik",
+                "Elektriciteitsverbruik", "NabijheidsVoorzieningen", "Oppervlakte Land/Water", "Postcode Dekking", "Meest voorkomende postcode", "Personen per soort uitkering", "Mate van Stedelijkheid",
+                "Omgevingsadressendichtheid", "Gemiddelde Woningwaarde", "Woning naar Bewoning", "Woning naar Bouwjaar", "Woning naar Eigendom", "Woning naar Type", "Woningvoorraad"];
+            var arrayFac = ["Bezoekerscentrum", "Boortoren", "Brandtoren", "Brandweerkazerne", "Bunker", "Crematorium", "Dok", "Elektriciteitscentrale", "Fabriek", "Fort", "Gemaal", "Gemeentehuis", "Gevangenis", "Hotel", "Huizenblok", "Kapel", "KasWarenhuis", "Kasteel", "Kerk", "KerncentraleKernreactor", "KliniekInrichtingSanatorium", "Klokkentoren", "KloosterAbdij", "Koeltoren", "Koepel", "Kunstijsbaan", "Lichttoren", "Luchtwachttoren", "Manege", "MarkantGebouw", "MilitairGebouw", "Moskee", "Museum", "Observatorium", "OverigReligieusGebouw", "Overig_gebouw", "Paleis", "ParkeerdakParkeerdekParkeergarage", "Peilmeetstation", "Politiebureau", "Pompstation", "Postkantoor", "PsychiatrischZiekenhuisPsychiatrischCentrum", "Radarpost", "Radartoren", "RadiotorenTelevisietoren", "Recreatiecentrum", "Reddingboothuisje", "Remise", "Rune", "Schaapskooi", "School", "Schoorsteen", "Silo", "Sporthal", "Stadion", "StadskantoorHulpsecretarie", "Stationsgebouw", "Synagoge", "Tank", "Tankstation", "Telecommunicatietoren", "Tol_gebouw", "Toren", "Transformatorstation_gebouw", "Uitzichttoren", "Universiteit", "Veiling", "Verkeerstoren", "Vuurtoren", "Waterradmolen", "Watertoren", "Wegrestaurant", "Werf_gebouw", "Windmolen", "WindmolenKorenmolen", "WindmolenWatermolen", "Windturbine", "Zendtoren", "Ziekenhuis", "Zwembad_gebouw"];
+
+            var GetVariables = function (array, idname) {
+                createList(array, idname);
+
+            }
+            GetVariables(arrayFac, "functiegebied");
+            GetVariables(arrayQuery, "demographics");
+
+            var GetArray = function (Feature) {
+                var dic = {
+                    "Bedrijfsvestigingen": ["bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_ALandbouw_BosbouwEnVisserij", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_B-fNijverheidEnEnergie", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_G_p_IHandelEnHoreca", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_H_p_JVervoer_InformatieEnCommunicatie", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_K-lFinancieleDiensten_OnroerendGoed", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_M-nZakelijkeDienstverlening", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenNaarActiviteit_R-uCultuur_Recreatie_OverigeDiensten", "bedrijfsvestigingen_Sbi2008_BedrijfsvestigingenTotaal"],
+                    "Aantal Inwoners": ["bevolking_AantalInwoners", "bevolking_Allochtonen_Niet-westers_Marokko", "bevolking_Allochtonen_Niet-westers_NederlandseAntillenEnAruba", "bevolking_Allochtonen_Niet-westers_Niet-westersTotaal", "bevolking_Allochtonen_Niet-westers_OverigNiet-westers", "bevolking_Allochtonen_Niet-westers_Suriname", "bevolking_Allochtonen_Niet-westers_Turkije", "bevolking_Allochtonen_WestersTotaal"],
+                    "Burgelijke Staat": ["bevolking_BurgerlijkeStaat_Gehuwd", "bevolking_BurgerlijkeStaat_Gescheiden", "bevolking_BurgerlijkeStaat_Ongehuwd", "bevolking_BurgerlijkeStaat_Verweduwd"],
+                    "Geboorte/sterfte": ["bevolking_GeboorteEnSterfte_GeboorteTotaal", "bevolking_GeboorteEnSterfte_SterfteTotaal"],
+                    "Geslacht": ["bevolking_Geslacht_Mannen", "bevolking_Geslacht_Vrouwen"],
+                    "Leeftijdsgroepen": ["bevolking_Leeftijdsgroepen_0Tot15Jaar", "bevolking_Leeftijdsgroepen_15Tot25Jaar", "bevolking_Leeftijdsgroepen_25Tot45Jaar", "bevolking_Leeftijdsgroepen_45Tot65Jaar", "bevolking_Leeftijdsgroepen_65JaarOfOuder"],
+                    "Particuliere Huishoudens": ["bevolking_ParticuliereHuishoudens_Eenpersoonshuishoudens", "bevolking_ParticuliereHuishoudens_GemiddeldeHuishoudensgrootte", "bevolking_ParticuliereHuishoudens_HuishoudensMetKinderen", "bevolking_ParticuliereHuishoudens_HuishoudensTotaal", "bevolking_ParticuliereHuishoudens_HuishoudensZonderKinderen"],
+                    "Aardgasverbruik": ["energie_GemiddeldAardgasverbruik_GemiddeldAardgasverbruikTotaal", "energie_GemiddeldAardgasverbruik_NaarEigendom_EigenWoning", "energie_GemiddeldAardgasverbruik_NaarEigendom_Huurwoning", "energie_GemiddeldAardgasverbruik_NaarWoningtype_Appartement", "energie_GemiddeldAardgasverbruik_NaarWoningtype_Hoekwoning", "energie_GemiddeldAardgasverbruik_NaarWoningtype_Tussenwoning", "energie_GemiddeldAardgasverbruik_NaarWoningtype_Twee-onder-een-kap-woning", "energie_GemiddeldAardgasverbruik_NaarWoningtype_VrijstaandeWoning"],
+                    "Elektriciteitsverbruik": ["energie_GemiddeldElektriciteitsverbruik_GemiddeldElektriciteitsverbruikTotaal", "energie_GemiddeldElektriciteitsverbruik_NaarEigendom_EigenWoning", "energie_GemiddeldElektriciteitsverbruik_NaarEigendom_Huurwoning", "energie_GemiddeldElektriciteitsverbruik_NaarWoningtype_Appartement", "energie_GemiddeldElektriciteitsverbruik_NaarWoningtype_Hoekwoning", "energie_GemiddeldElektriciteitsverbruik_NaarWoningtype_Tussenwoning", "energie_GemiddeldElektriciteitsverbruik_NaarWoningtype_Twee-onder-een-kap-woning", "energie_GemiddeldElektriciteitsverbruik_NaarWoningtype_VrijstaandeWoning"],
+                    "NabijheidsVoorzieningen": ["nabijheidVoorzieningen_AfstandTotGroteSupermarkt", "nabijheidVoorzieningen_AfstandTotHuisartsenpraktijk", "nabijheidVoorzieningen_AfstandTotKinderdagverblijf", "nabijheidVoorzieningen_Basisonderwijs_AfstandTotSchool", "nabijheidVoorzieningen_Basisonderwijs_ScholenBinnen3Km"],
+                    "Oppervlakte Land/Water": ["oppervlakte_OppervlakteLand", "oppervlakte_OppervlakteTotaal", "oppervlakte_OppervlakteWater"],
+                    "Postcode Dekking": ["postcode_Dekkingspercentage"],
+                    "Meest voorkomende postcode": ["postcode_MeestVoorkomendePostcode"],
+                    "Personen per soort uitkering": ["socialeZekerheid_PersonenPerSoortUitkering_Ao", "socialeZekerheid_PersonenPerSoortUitkering_Aow", "socialeZekerheid_PersonenPerSoortUitkering_Bijstand", "socialeZekerheid_PersonenPerSoortUitkering_Ww"],
+                    "Mate van Stedelijkheid": ["stedelijkheid_MateVanStedelijkheid"],
+                    "Omgevingsadressendichtheid": ["stedelijkheid_Omgevingsadressendichtheid"],
+                    "Gemiddelde Woningwaarde": ["wonen_GemiddeldeWoningwaarde"],
+                    "Woning naar Bewoning": ["wonen_WoningenNaarBewoning_PercentageBewoond", "wonen_WoningenNaarBewoning_PercentageOnbewoond"],
+                    "Woning naar Bouwjaar": ["wonen_WoningenNaarBouwjaar_BouwjaarVanaf2000", "wonen_WoningenNaarBouwjaar_BouwjaarVoor2000"],
+                    "Woning naar Eigendom": ["wonen_WoningenNaarEigendom_EigendomOnbekend", "wonen_WoningenNaarEigendom_Huurwoningen_HuurwoningenTotaal", "wonen_WoningenNaarEigendom_Huurwoningen_InBezitOverigeVerhuurders", "wonen_WoningenNaarEigendom_Huurwoningen_InBezitWoningcorporatie", "wonen_WoningenNaarEigendom_Koopwoningen"],
+                    "Woning naar Type": ["wonen_WoningenNaarType_PercentageEengezinswoning", "wonen_WoningenNaarType_PercentageMeergezinswoning"],
+                    "Woningvoorraad": ["wonen_Woningvoorraad"]
+
+
+
+                };
+
+                if (dic.hasOwnProperty(Feature)) {
+                    var value = dic[Feature];
+                    return value;
+
+                }
+
+                return null;
+
+            };
+
+
+
+            var scene = new WebScene({
+                portalItem: { // autocasts as new PortalItem()
+                    id: "cc5f739f95354259818233640d31c7dc"
+                }
+            });
+
+
+            var view = new SceneView({
+                container: "viewDiv",  // Reference to the scene div created in step 5
+                map: scene,
+                  // Reference to the map object created before the scene
+                zoom: 8,  // Sets zoom level based on level of detail (LOD)
+                popupEnabled : false,
+                camera: {
+                    position: [4.89516, 52.370216],
+                    tilt: 81,
+                    heading: 50
+
+                },
+                highlightOptions: {
+                    color: [0, 255, 255],
+                    fillOpacity: 0.6
+                }
+                // Sets center point of view using longitude,latitude
+            });
+
+            var searchWidget = new Search({
+                view: view
+            });
+
+            // Add the search widget to the top right corner of the view
+            view.ui.add(searchWidget, {
+                position: "bottom-left"
+            });
+
+
+
+
+
+            // var layerList = new LayerList({
+            //     view: view
+            // });
+
+            // view.ui.add(layerList, {
+            //     position: "top-left"
+            // });
+
+            // wait until the webscene finished loading
+            scene.when(function () {
+
+                // retrieve the scene layer from the webscene - in this case it is the first layer
+                var sceneLayer = scene.layers.getItemAt(0);
+                console.log("scenelayer" + sceneLayer)
+                var highlight = null;
+                // retrieve the layer view of the scene layer
+                view.whenLayerView(sceneLayer)
+                    .then(function (sceneLayerView) {
+
+
+
+                        view.on("click", function (event) {
+                            //   console.log("click");
+                            view.hitTest(event)
+                                .then(function (response) {
+
+                                    document.getElementById("sidebar").style.display = "inline";
+                                    console.log(response);
+                                    d3.select("svg").remove();
+                                    // do something with the result graphic
+                                    const graphic = response.results.filter(function (result) {
+                                        
+
+                                        console.log(result.graphic);
+                                        console.log("result: ", result.graphic.attributes.lokaalid);
+                                        console.log("geometry: ", result.graphic.geometry.type);
+                                        var id = result.graphic.attributes.lokaalid;
+                                        var namebuilding = document.getElementById("namebuilding")
+                                        namebuilding.textContent = id;
+                                        namebuilding.dataset.numBuilding = id;
+
+
+                                        console.log(id);
+
+                                        // Variables related to finding buildings around the selected buillding
+                                        // var number = document.getElementById("requests").value;
+                                        // console.log(number);
+                                        // var distance = document.getElementById("distance").value;
+                                        // console.log(distance);
+
+                                        //Variables related to visualizing the demographic findings
+
+
+                                        // var building = document.getElementById("mySelect");
+                                        // var strbuilding = building.options[building.selectedIndex].value;
+                                        // console.log(strbuilding);
+
+
+                                        var query1 = "PREFIX top10nl: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+                                                    PREFIX brt: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+                                                    PREFIX def: <http://betalinkeddata.cbs.nl/def/83487NED#>\n\
+                                                    PREFIX dimension: <http://betalinkeddata.cbs.nl/def/dimension#>\n\
+                                                    PREFIX gemeente: <http://betalinkeddata.cbs.nl/regios/2016/id/gemeente-geografisch/>\n\
+                                                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\
+                                                    PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n\
+                                                    PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n\
+                                                    PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/>\n\
+                                                    PREFIX cbs: <http://betalinkeddata.cbs.nl/def/cbs#>\n\
+                                                    PREFIX cs: <http://purl.org/vocab/changeset/schema#>\n\
+                                                    PREFIX cb: <http://cbasewrap.ontologycentral.com/vocab#>\n\
+                                                    \n\
+                                                    SELECT DISTINCT ?object ?name"
+
+
+                                        query3 = " where  {\n\
+                                                    VALUES ?s {<http://brt.basisregistraties.overheid.nl/top10nl/id/gebouw/"+ id + ">  }\n\
+                                                ?s ?predicate ?object.\n\
+                                                ?predicate rdfs:label ?name.\n\
+                                                ?s geo:hasGeometry/geo:asWKT ?Gebouwgeo.}"
+
+
+                                        query3 = query1.concat(query3);
+
+
+
+
+                                        var params = new URLSearchParams()
+                                        params.append("query", query3);
+                                        var options = {
+                                            body: query3,//beginpart.concat(id, endpart),
+                                            responseType: 'json',
+                                            headers: {
+                                                Accept: 'application/sparql-results+json',
+                                                'Content-Type': 'application/sparql-query'
+                                            }
+                                        };
+                                        console.log('options', options);
+                                        esriRequest("https://data.pdok.nl/sparql", options).then(function (response) {
+                                            // console.log(response.data.results.bindings.length);
+                                            var dic = {} // Het maken van een lege lijst waar de unieke waarden aan toegevoegd worden
+
+                                            var entries = document.getElementById('entries');
+                                            entries.innerHTML = "";
+
+                                            // putting name and  value of the selected building into a dic
+                                            for (i = 0; i < response.data.results.bindings.length; i++) {
+                                                var name = response.data.results.bindings[i].name.value;
+                                                var value = response.data.results.bindings[i].object.value;
+                                                dic[name] = value;
+
+
+
+
+                                            }
+
+
+                                            // str = JSON.stringify(dic);
+                                            // console.log(str);
+
+                                            // console.log(uniqueItems.length);
+                                            // Heb een tweede for-loop gebruikt om over de unieke waarden te loopen, geen idee of het gebruik van een tweede for-loop wel of niet efficiënt is.
+                                            for (var key in dic) {
+
+                                                var entry = document.createElement('li');
+                                                entry.textContent = key + ": ";
+                                                var value = dic[key];
+                                                var start = value.startsWith("http");
+
+                                                var link = document.createElement('a');
+                                                link.textContent = value
+                                                link.dataset.identifier = value
+                                                var whiteline = document.createElement('p');
+
+                                                if (start) {
+                                                    link.style.textDecoration = "underline";
+
+                                                    link.href = value;
+                                                    link.target = "_blank";
+
+                                                }
+                                                else {
+                                                    link.href = '#'
+                                                    link.style.pointerEvents = "none";
+                                                }
+
+
+
+
+
+
+                                                entry.appendChild(link);
+                                                entries.appendChild(entry);
+                                                entries.appendChild(whiteline);
+
+
+
+
+                                            }
+                                            var other = document.getElementById('otherInfo');
+                                            other.style.display = "";
+
+
+
+                                        });
+
+
+
+                                    });
+
+
+                                });
+                        });
+
+
+
+
+
+                    });
+            });
+            document.getElementById("demographic").addEventListener("click", CBS_request);
+            function CBS_request() {
+
+                var SelectFeature = document.getElementById("Select1").value;
+                console.log("selected feature", SelectFeature);
+                var returnedValue = GetArray(SelectFeature);
+                console.log("array works", returnedValue);
+
+                var id = document.getElementById("namebuilding").dataset.numBuilding;
+                var demoLevel = document.getElementById("demographicLevel").value;
+
+
+                console.log("demolevel", demoLevel);
+
+                var query1 = "PREFIX top10nl: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+                            PREFIX brt: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+                            PREFIX def: <http://betalinkeddata.cbs.nl/def/83487NED#>\n\
+                            PREFIX dimension: <http://betalinkeddata.cbs.nl/def/dimension#>\n\
+                            PREFIX gemeente: <http://betalinkeddata.cbs.nl/regios/2016/id/gemeente-geografisch/>\n\
+                            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\
+                            PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n\
+                            PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n\
+                            PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/>\n\
+                            PREFIX cbs: <http://betalinkeddata.cbs.nl/def/cbs#>\n\
+                            PREFIX cs: <http://purl.org/vocab/changeset/schema#>\n\
+                            PREFIX cb: <http://cbasewrap.ontologycentral.com/vocab#>\n\
+                            PREFIX obs: <http://betalinkeddata.cbs.nl/83487NED/id/observation/>\n\
+                            PREFIX cbs-qb: <http://betalinkeddata.cbs.nl/def/cbs-qb#>\n\
+                            PREFIX sdmxa: <http://purl.org/linked-data/sdmx/2009/attribute#>\n\
+                            \n\
+                            SELECT DISTINCT ?unit0"
+
+                query2 = "";
+                var counter = 0;
+                for (elem in returnedValue) {
+                    var element = returnedValue[elem];
+                    var elementchange = element.replace(/-/g, "_");
+                    query2 += " ?" + elementchange;
+                }
+
+
+                query3 = " where  {\n\
+                    VALUES ?s {<http://brt.basisregistraties.overheid.nl/top10nl/id/gebouw/"+ id + ">  }\n\
+                ?s geo:hasGeometry/geo:asWKT ?Gebouwgeo.\n\
+                \n\
+                    SERVICE<https://betalinkeddata.cbs.nl/sparql>{\n\
+                    ?gemeente a ?type .\n\
+                    filter (?type = cbs:"+ demoLevel + ")\n\
+                    ?gemeente geo:hasGeometry ?regiogeo.\n\
+                    ?Gebouwgeo geo:sfWithin ?regiogeo .\n\
+                    ?gemeente rdfs:label ?gemeentenaam."
+
+                var query4 = "";
+                for (elem in returnedValue) {
+                    var element = returnedValue[elem];
+                    var elementchange = element.replace(/-/g, "_");
+                    console.log(elementchange);
+                    query4 += "\n\
+                        values ?p"+ counter + " { def:" + returnedValue[elem] + "}\n\
+                        ?observation" + counter + " ?p" + counter + " ?" + elementchange + ";\n\
+                        dimension:regio ?gemeente.\n\
+                        ?observatie"+ counter + " cbs-qb:inObservationGroup ?slice" + counter + ".\n\
+                        ?slice" + counter + " sdmxa:unitMeasure ?unit" + counter + ".";
+
+                    counter++;
+                }
+
+
+                query5 = query1.concat(query2).concat(query3).concat(query4).concat("}}");
+                var params = new URLSearchParams()
+                params.append("query", query5);
+                var options = {
+                    body: query5,//beginpart.concat(id, endpart),
+                    responseType: 'json',
+                    headers: {
+                        Accept: 'application/sparql-results+json',
+                        'Content-Type': 'application/sparql-query'
+                    }
+                };
+                console.log('options', options);
+                var dataset = [];
+                esriRequest("https://data.pdok.nl/sparql", options).then(function (response) {
+                    // console.log(response.data.results.bindings.length);
+                    // putting name and  value of the selected building into a dic
+                    var ObjectValue = {};
+                    // var counter = 0;
+                    for (i = 0; i < response.data.results.bindings.length; i++) {
+
+                        var binding = response.data.results.bindings[i];
+                        var bindingNames = Object.keys(binding);
+                        console.log(bindingNames);
+                        for (j = 0; j < bindingNames.length; j++) {
+                            // counter += 1;
+                            var ObjectValue = {};
+
+                            var name = bindingNames[j];
+                            if (isNaN(binding[name].value)) {
+
+
+                            }
+                            else {
+                                var nameValue = parseInt(binding[name].value);
+                                ObjectValue["key"] = name;
+                                ObjectValue["value"] = nameValue;
+                                dataset.push(ObjectValue);
+
+                            }
+
+                        };
+
+
+                    };
+                    console.log(dataset);
+
+                    var svg = d3.select("#barchart")
+                        .select("svg")
+                        .remove("svg");
+
+                    //Width and height
+                    var w = 750;
+                    var h = 450;
+                    var margin = {
+                        top: 20,
+                        right: 400,
+                        bottom: 50,
+                        left: 20
+                    };
+                    var padding = 20;
+
+
+                    var xScale = d3
+                        .scaleBand()
+                        .domain(dataset.map(d => d.key))
+                        .rangeRound([0, w - margin.left - margin.right])
+                        .paddingInner(0.1);
+
+
+                    var yScale = d3
+                        .scaleLinear()
+                        .domain([
+                            0,
+                            d3.max(dataset, function (d) {
+                                return d.value;
+                            })
+                        ])
+                        // range must start from 0, if we use padding as the starting point our values will have an offset,
+                        // for example if we have a zero value in our domain our chart will show this as the padding value
+                        .range([0, h - margin.top - margin.bottom]);
+                    console.log("yscale", yScale);
+
+
+                    //Define key function, to be used when binding data
+                    //Define key function, to be used when binding data
+                    var key = function (d) {
+                        console.log("key", d);
+                        return d.key;
+                    };
+
+                    //Create SVG element
+                    var svg = d3
+                        .select("#barchart")
+                        .append("svg")
+                        .style("background", "rgb(243, 243, 243)")
+                        .style("border", "1px dashed #b4b4b4")
+                        .attr("width", w)
+                        .attr("height", h);
+
+                    var g = svg
+                        .append("g")
+                        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+                    const customWidth = w - margin.left - margin.right;
+                    const customHeight = h - margin.top - margin.bottom;
+                    //Create bars
+                    //Create bars
+                    g.append("g")
+                        .attr("class", "rect__container")
+                        .selectAll("rect")
+                        .data(dataset, key) //Bind data with custom key function
+                        .enter()
+                        .append("rect")
+                        .attr("x", function (d, i) {
+                            return xScale(key(d));
+                        })
+                        .attr("y", function (d) {
+                            return customHeight - yScale(d.value);
+                        })
+                        .attr("width", xScale.bandwidth())
+                        .attr("height", function (d) {
+                            return yScale(d.value);
+                        })
+                        .attr("fill", function (d, i) {
+                            return d3.schemeCategory10[i];
+                            // return "rgb(0, 0, " + d.value * 10 + ")";
+                        });
+
+                    var legendElement = g
+                        .append("g")
+                        .attr("class", "legend__container")
+                        .attr("transform", `translate(${customWidth}, ${margin.top})`)
+                        .selectAll("g.legend__element")
+                        .data(xScale.domain())
+                        .enter()
+                        .append("g")
+                        .attr("transform", function (d, i) {
+                            return `translate(${10}, ${i * 30})`;
+                        });
+
+                    legendElement
+                        .append("text")
+                        .attr("x", 30)
+                        .attr("font-size", "14px")
+                        .text(d => d);
+
+                    legendElement
+                        .append("rect")
+                        .attr("x", 0)
+                        .attr("y", -15)
+                        .attr("width", 20)
+                        .attr("height", 20)
+                        .attr("fill", function (d, i) {
+                            return d3.schemeCategory10[i];
+                        });
+                    //Create labels
+                    g.append("g")
+                        .attr("class", "text__container")
+                        .selectAll("text")
+                        .data(dataset, key) //Bind data with custom key function
+                        .enter()
+                        .append("text")
+                        .text(function (d) {
+                            return d.value;
+                        })
+                        .attr("text-anchor", "middle")
+                        .attr("x", function (d, i) {
+                            return xScale(key(d)) + xScale.bandwidth() / 2;
+                        })
+                        .attr("y", function (d) {
+                            return customHeight - yScale(d.value) + 14;
+                        })
+                        .attr("font-family", "sans-serif")
+                        .attr("font-size", "11px")
+                        .attr("fill", "black");
+                });
+
+
+            };
+            function others_request() {
+
+
+                // retrieve the scene layer from the webscene - in this case it is the first layer
+                var sceneLayer = scene.layers.getItemAt(0);
+                console.log("scenelayer" + sceneLayer)
+                var highlight = null;
+                // retrieve the layer view of the scene layer
+                view.whenLayerView(sceneLayer)
+                    .then(function (sceneLayerView) {
+
+                        var requestNr = document.getElementById("requests").value;
+                        //code to set the value variable.
+                        var distance = document.getElementById("distance").value;
+                        var typeBuilding = document.getElementById("Select0").value;
+                        var id = document.getElementById("namebuilding").dataset.numBuilding;
+                        var query1 = "PREFIX top10nl: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+PREFIX brt: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n\
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n\
+PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/>\n\
+\n\
+select ?otherBuilding where { VALUES ?s {<http://brt.basisregistraties.overheid.nl/top10nl/id/gebouw/"+ id + ">}\n\
+?s geo:hasGeometry/geo:asWKT ?Gebouwgeo.\n\
+?otherBuilding a brt:"+ typeBuilding + "; geo:hasGeometry/geo:asWKT ?objectGeo.\n\
+FILTER(geof:distance(?objectGeo, ?Gebouwgeo, uom:metre) < "+ distance + ") }\n\
+limit "+ requestNr
+
+                        var params = new URLSearchParams()
+                        params.append("query", query1);
+                        var options = {
+                            body: query1,//beginpart.concat(id, endpart),
+                            responseType: 'json',
+                            headers: {
+                                Accept: 'application/sparql-results+json',
+                                'Content-Type': 'application/sparql-query'
+                            }
+                        };
+                        console.log('options', options);
+                        esriRequest("https://data.pdok.nl/sparql", options).then(function (response) {
+                            // console.log(response.data.results.bindings.length);
+                            var dic = {} // Het maken van een lege lijst waar de unieke waarden aan toegevoegd worden
+
+                            var entries = document.getElementById('entries2');
+                            entries.innerHTML = "";
+
+                            // putting name and  value of the selected building into a dic
+                            console.log("lengte response: ", response.data.results.bindings.length);
+                            for (var i = 0; i < response.data.results.bindings.length; i++) {
+                                var value = response.data.results.bindings[i].otherBuilding.value;
+                                var subtext = value.substring(value.length - 9, value.length);
+                                console.log("subtext", subtext);
+                                var entry = document.createElement('li');
+                                var link = document.createElement('a');
+                                link.href = value;
+                                link.target="_blank";
+                                var font_website=document.createElement("i");
+                                font_website.className="fas fa-external-link-alt";
+                                link.appendChild(font_website);
+
+                                var zoomIn = document.createElement('a');
+                                zoomIn.href="#";
+                                var font_Zoom=document.createElement('i');
+                                font_Zoom.className = "fas fa-search-plus";
+                                font_Zoom.dataset.gebouwid = subtext;
+
+                                // zoomIn.dataset.gebouwid = subtext;
+                                font_Zoom.onclick = function (event) {
+                                    var clickedElement = event.target;
+                                    var gebouwid = clickedElement.dataset.gebouwid;
+                                    // var query = new Query({
+                                    //     where: "lokaalid  = '" + element+"'",
+                                    //     returnGeometry: true,
+                                    //     outFields: ["*"]
+
+                                    // });
+
+                                    var query = sceneLayer.createQuery();
+                                    query.outFields = ['lokaalid', 'objectid'];
+                                    query.returnGeometry = true;
+                                    query.where = "lokaalid = '" + gebouwid + "'";
+                                    sceneLayer.queryFeatures(query).then(function (result) {
+                                        if (highlight) {
+                                            highlight.remove();
+                                        }
+                                        highlight = sceneLayerView.highlight(result.features);
+
+                                        var opts = {
+                                            duration: 2000  // Duration of animation will be 5 seconds
+                                        };
+                                        var buildingExtent = result.features[0].geometry.extent.clone().expand(10);
+
+                                        view.goTo(buildingExtent, opts)
+                                        // var resultGraphic = new Graphic(result.features[i]);
+
+                                    });
+                                };
+                                zoomIn.appendChild(font_Zoom);
+                                
+                                var name = document.createElement('a');
+                                name.textContent = subtext;
+                                entry.appendChild(name);
+                                entry.appendChild(zoomIn);
+                                entry.appendChild(link);
+
+                                entries.appendChild(entry);
+                                var whiteline = document.createElement('p');
+                                entries.appendChild(whiteline);
+                            };
+                            var alert2 = document.getElementById("alert2");
+                            alert2.style.display = "block";
+
+                        });
+
+                    });
+
+
+            };
+            document.getElementById("Others").addEventListener("click", others_request);
+
+
+
+
+        });
+
+
+
+
+
+
+    </script>
+</head>
+
+<body>
+    <!-- <div id="viewer"> -->
+    <!-- <div id="viewer"> -->
+    <div id="viewDiv">
+        <div id="sidebar">
+            <button class="closebtn" onclick="document.getElementById('sidebar').style.display='none'"><i
+                    class="fas fa-times"></i>
+            </button>
+            <h3>Informatie over het gebouw</h3>
+
+            <div class="alert">
+                <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+                Klik op een gebouw in de map om meer informatie over het gebouw te verkrijgen. Om dit tekstblok
+                te laten verwijderen, klik op het kruisje hiernaast.
+            </div>
+
+
+            <label id="namebuilding"> </label>
+            <ul id="entries">
+            </ul>
+            <div id="otherInfo" style="display: none">
+                <div id="visuals">
+                    <h3>Demografische gegevens opvragen</h3>
+                    <p></p>
+                    <label> Kies op welk niveau je de demografische gegevens zou willen opvragen?</label>
+                    <select id="demographicLevel">
+                        <option value="Wijk">Wijk</option>
+                        <option value="Buurt">Buurt</option>
+                        <!-- <option value = "Gemeente">Gemeente</option> -->
+                    </select>
+
+                    <label>Welke van de volgende demografische gegevens zou je willen opvragen?</label>
+
+                    <p></p>
+
+                    <div id="demographics"></div>
+
+                    <p></p>
+
+                    <button id="demographic">Klik hier om de demografische gegevens op te vragen</button>
+                    <div id="barchart"></div>
+
+                </div>
+
+                <p></p>
+                <div id="otherBuildings">
+                    <h3>Het verkrijgen van informatie over andere gebouwen binnen een bepaalde afstand</h3>
+                    <label for="requests">Geef op het aantal requests dat je zou willen opvragen?</label>
+                    <input type="number" id="requests" name="requests" min="0" max="200" value="5">
+
+                    <label for="distance">Wat is de maximale afstand die je zou willen meenemen om de andere gebouwen te
+                        verkrijgen?
+                    </label>
+                    <input type="number" id="distance" name="distance" min="0" max="100000" value="3000">
+
+                    <p></p>
+
+                    <div id="functiegebied">
+                        Klik een van de volgende gebouwen
+                    </div>
+                    <button id="Others" onclick="others_request()">Klik hier om andere gebouwen te verkrijgen</button>
+
+                    <div id="alert2">
+                        <span class="closebtn2" onclick="this.parentElement.style.display='none';">&times;</span>
+                        Je kunt twee werkzaamheden uitvoeren. Door op het zoomin icoon te klikken, zoom je in op het desbetreffende
+                        gebouw, wanneer je op het andere icoon klikt, wordt je vervolgens naar een een URL gestuurd van het desbetreffende
+                        gebouw.
+                        
+                    </div>
+
+                    <ul id="entries2">
+                    </ul>
+                </div>
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+    <!-- </div> -->
+
+</body>
+
+</html>
