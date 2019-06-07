@@ -242,7 +242,7 @@ De eerste query is grotendeels ingevuld, zoals in het onderstaande code-blok te 
 
 Vervolgens gaan we een de parameters opgeven die nodig zijn om aan request zodadelijk mee te geven. 
 
-```
+```javascript
                                         var options = {
                                             body: query3,
                                             responseType: 'json',
@@ -255,7 +255,7 @@ Vervolgens gaan we een de parameters opgeven die nodig zijn om aan request zodad
 
 Uiteindelijk kunnen we de uiteindelijke request naar de SPARQL endpoint sturen
 
-```
+```javascript
      esriRequest("https://data.pdok.nl/sparql", options).then(function (response) {
                                             var dic = {} // Het maken van een lege dictionary waar de unieke waarden van de reponse van de SPARQL endpoint aan toegevoegd worden
 
