@@ -12,7 +12,8 @@ Begin zoals gewoonlijk met het opbouwen van een HTML file in een code editor, zo
 Ik heb de volgende titel gegeven: Webmap-applicatie, maar je mag uiteraard een andere naam voor de titel geven.
 
 
-```<!DOCTYPE html>
+```html
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -34,7 +35,8 @@ Ik gebruik voor mijn webmap-applicatie de 4.10 versie, maar deze kan momenteel u
 
 
 
-```<!DOCTYPE html>
+```html
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -55,7 +57,7 @@ Ik gebruik voor mijn webmap-applicatie de 4.10 versie, maar deze kan momenteel u
 
 Vervolgens gebruik ik de volgende functies om een webmap applicatie op te bouwen binnen een **<script> </script>**. Meer informatie over deze functies is te vinden via de volgende link: https://developers.arcgis.com/javascript/latest/api-reference/ . Het daadwerkelijke gebruik van de ArcGIS functies zal ik naderhand toelichten. Eerst zal ik toelichten hoe ik deels de user interface van de webmap-applicatie heb opgebouwd.
 
-```
+```html
     <script>
         require([
             "esri/views/SceneView",
@@ -91,10 +93,30 @@ In mijn webmap-applicatie worden drie verschillende SPARQL queries bevraagd:
   1. Informatie over het geselecteerd BRT-gebouw zelf
   2. CBS-informatie op wijk/buurt niveau waarbinnen het geselecteerde gebouw valt
   3. Informatie ove andere gebouwen (bepaald door de gebruiker) binnen een gegeven afstand van het geselecteerde gebouw
+  
 
-Binnen de <body> </body> sectie creëer ik eerst een <div></div> waarbinnen de webmap applicatie en de zijbalk ingevoerd zullen worden. Informatie over de styling van de elementen is te vinden in het CSS bestand en zal niet erg op toegespitst worden.
-Vervolgens binnen de <div></div> wordt een andere <div></div> gecreëerd wat de zijbalk zal vertegenwoordigen.
+Binnen de **body** sectie creëer ik eerst een **div** ("viewDiv") waarbinnen de webmap applicatie en de zijbalk ingevoerd zullen worden. Informatie over de styling van de elementen is te vinden in het CSS bestand en zal niet erg op toegespitst worden.
+Vervolgens binnen de div wordt een **andere div** ("sidebar") gecreëerd wat de zijbalk zal vertegenwoordigen.
 
+Het eerste gedeelte van de body sectie ziet er als volgt uit en betreft de layout voor de informatie over het geselecteerde gebouw zelf.
+
+```html
+<body>
+
+    <div id="viewDiv"> 
+        <div id="sidebar">
+        
+            <button class="closebtn" onclick="document.getElementById('sidebar').style.display='none'"><i
+                    class="fas fa-times"></i> \\ button voor het sluiten van de zijbalk
+            </button>
+            
+            <h3>Informatie over het gebouw</h3>
+
+
+            <label id="namebuilding"> </label>
+            <ul id="entries"> \\hier zal de informatie komen van de resultaten van de SPARQL query
+            </ul>
+```
 
 
 
