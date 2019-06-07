@@ -53,7 +53,7 @@ Ik gebruik voor mijn webmap-applicatie de 4.10 versie, maar deze kan momenteel u
 </html>
 ``` 
 
-Vervolgens gebruik ik de volgende functies om een webmap applicatie op te bouwen binnen een <script> </script>. Meer informatie over deze functies is te vinden via de volgende link: https://developers.arcgis.com/javascript/latest/api-reference/ . Het daadwerkelijke gebruik van de ArcGIS functies zal ik naderhand toelichten. Eerst zal ik toelichten hoe ik deels de user interface van de webmap-applicatie heb opgebouwd.
+Vervolgens gebruik ik de volgende functies om een webmap applicatie op te bouwen binnen een **<script> </script>**. Meer informatie over deze functies is te vinden via de volgende link: https://developers.arcgis.com/javascript/latest/api-reference/ . Het daadwerkelijke gebruik van de ArcGIS functies zal ik naderhand toelichten. Eerst zal ik toelichten hoe ik deels de user interface van de webmap-applicatie heb opgebouwd.
 
 ```
     <script>
@@ -92,7 +92,8 @@ In mijn webmap-applicatie worden drie verschillende SPARQL queries bevraagd:
   2. CBS-informatie op wijk/buurt niveau waarbinnen het geselecteerde gebouw valt
   3. Informatie ove andere gebouwen (bepaald door de gebruiker) binnen een gegeven afstand van het geselecteerde gebouw
 
-Om ervoor te zorgen dat een gebruiker zelf niet de SPARQL query hoeft op te schrijven, 
+Binnen de <body> </body> sectie creëer ik eerst een <div></div> waarbinnen de webmap applicatie en de zijbalk ingevoerd zullen worden. Informatie over de styling van de elementen is te vinden in het CSS bestand en zal niet erg op toegespitst worden.
+Vervolgens binnen de <div></div> wordt een andere <div></div> gecreëerd wat de zijbalk zal vertegenwoordigen.
 
 
 
