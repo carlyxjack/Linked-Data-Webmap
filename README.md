@@ -77,9 +77,10 @@ Vervolgens gebruik ik de volgende functies om een webmap applicatie op te bouwen
             "dojo/domReady!"
 
         ], function (SceneView, WebScene, Search, GraphicsLayer, Graphic, Query, QueryTask, Extent, i18n, LayerList, Polygon, esriRequest, dom, on, domReady) {
+        
 ```
 
-# Global informatie over de data: BRT Linked Data van het Kadaster
+# Globale informatie over de data: BRT Linked Data van het Kadaster
 
 Voor mijn webmap-applicate bevraag ik Top10NL/BRT Linked Data van het Kadaster. Normaliter kun je gewoon via de volgende SPARQL endpoint van het Kadaster Linked Data bevragen: https://data.pdok.nl/sparql.
 
@@ -95,12 +96,12 @@ In mijn webmap-applicatie worden drie verschillende SPARQL queries bevraagd:
   3. Informatie ove andere gebouwen (bepaald door de gebruiker) binnen een gegeven afstand van het geselecteerde gebouw
   
 
-Binnen de **body** sectie creëer ik eerst een **div** ("viewDiv") waarbinnen de webmap applicatie en de zijbalk ingevoerd zullen worden. Informatie over de styling van de elementen is te vinden in het CSS bestand en zal niet erg op toegespitst worden.
-Vervolgens binnen de div wordt een **andere div** ("sidebar") gecreëerd wat de zijbalk zal vertegenwoordigen.
+Binnen de **body** sectie creëer ik eerst een **div** (**"viewDiv"**) waarbinnen de webmap applicatie en de zijbalk ingevoerd zullen worden. Informatie over de styling van de elementen is te vinden in het CSS bestand en zal niet erg op toegespitst worden.
+Vervolgens binnen de div wordt een **andere div** (**"sidebar"**) gecreëerd wat de zijbalk zal vertegenwoordigen.
 
-# De eerste SPARQL query: script en user interface
+# Webmap-applicatie bouwen
 
-Het eerste gedeelte van de body sectie ziet er als volgt uit en betreft de layout voor de informatie over het geselecteerde gebouw zelf.
+Het eerste gedeelte van de **body** sectie ziet er als volgt uit en betreft de layout voor de informatie over het geselecteerde gebouw zelf.
 
 ```html
 <body>
@@ -109,18 +110,101 @@ Het eerste gedeelte van de body sectie ziet er als volgt uit en betreft de layou
         <div id="sidebar">
         
             <button class="closebtn" onclick="document.getElementById('sidebar').style.display='none'"><i
-                    class="fas fa-times"></i> \\ button voor het sluiten van de zijbalk
+                    class="fas fa-times"></i> //button voor het sluiten van de zijbalk
             </button>
             
             <h3>Informatie over het gebouw</h3>
 
 
             <label id="namebuilding"> </label>
-            <ul id="entries"> \\hier zal de informatie komen van de resultaten van de SPARQL query
+            <ul id="entries"> //hier zal de informatie komen van de resultaten van de SPARQL query
             </ul>
 ```
 
+In het code-blok hierboven kun je de volgende lijn zien: <ul id="entries> Dit is een 'unordered list' wat momenteel leeg staat, maar zal naderhand wanneer men dus op een gebouw klikt een vervolgens een SPARQL query naar een SPARQL endpoint stuurt en vervolgens de resultaten van de SPARQL in de entries tonen.
+
+Ik zal vervolgens eerst laten zien hoe ik de basaal de webmap applicatie heb opgebouwd. Veel van de code is simpelweg ontleend van de sample code die beschikbaar is via de volgende link: https://developers.arcgis.com/javascript/latest/sample-code/
+
+De code-blokken die volgen zitten eveneens in de **script** tag onder de require functies.
+
+Het eerste wat ik doe is een instantie van een webscene maken. Deze webscene van Amsterdam heb ik met de ArcGIS Pro gemaakt (aangezien ik geen 3d van het BRT kon vinden). De WebScence bestaat uit een webservice van BRT data, waarbij ik de hoogte van alle gebouwen op een vaste hoogte hebt vastgesteld.
+Vervolgens heb ik de WebScene geüpload naar ArcGIS Online en daarna gebruik ik het id van het portal item om de webscene op te halen in de webmap-applicatie.
+
+```javascript
+            var scene = new WebScene({
+                portalItem: { // autocasts as new PortalItem()
+                    id: "cc5f739f95354259818233640d31c7dc"
+                }
+            });
+
+
+```
+Vervolgens creëer je een SceneView, waarbij een 3d weergave wordt gegeven van de WebScene met behulp van WebGL.
+De container betaat uit een DOM element die de SceneView zal weergeven, in dit geval betreft het de **#ViewDiv**.
+Bij map geef je een instantie op van een object dat in de View weergeven zal worden, in dit geval betreft het de scene.
+Bij **postition** heb ik de coordinaten van Amsterdam opgegeven. 
+
+```javascript
+            var view = new SceneView({
+                container: "viewDiv",  //deze is in de body sectie aangemaakt
+                map: scene,
+                zoom: 8,  
+                popupEnabled : false,
+                camera: {
+                    position: [4.89516, 52.370216], // coordinaten van Amsterdam
+                    tilt: 81,
+                    heading: 50
+
+                },
+                highlightOptions: {
+                    color: [0, 255, 255],
+                    fillOpacity: 0.6
+                }
+                // Sets center point of view using longitude,latitude
+            });
+```
+
+Als extraatje heb ik een searchWidget gemaakt en eveneens gevoegd in de webmap-applicatie
+
+```javascript
+            var searchWidget = new Search({
+                view: view
+            });
+
+            // Add the search widget to the top right corner of the view
+            view.ui.add(searchWidget, {
+                position: "bottom-left"
+            });
+
+```
+# De eerste SPARQL query
+
+Deels van de webmap-applicatie hebben we net opgebouwd. Echter we willen nu iets doen waarbij er iets gebeurt wanner men op één van de 
+gebouwen klikt. 
+Daarbij zijn de volgende coderegels in ieder geval daarbij nodig.
+
+```javascript
+          scene.when(function () {
+
+                var sceneLayer = scene.layers.getItemAt(0); // hierbij haal je eerste laag van de WebScene in geval de BRT webservice
+                var highlight = null;
+                view.whenLayerView(sceneLayer) // Hierbij haal je de LayerView op van de laag (BRT webservice)
+                    .then(function (sceneLayerView) {
 
 
 
+                        view.on("click", function (event) { // Hierbij vindt de klik-event plaats
+                            view.hitTest(event) // zorgt ervoor dat je de graphic(s) terugkrijgt van waar je op geklikt hebt
+                                .then(function (response) {
 
+                                    document.getElementById("sidebar").style.display = "inline";
+                                    const graphic = response.results.filter(function (result) { \\ de graphic 
+                                        
+                                        var id = result.graphic.attributes.lokaalid; \\ het verkrijgen van het id van de graphic, in dit geval zijn we geïnteresseerd in de lokaalid
+                                        // Vervolgens haal je de "namebuilding" HTML element op en bewaar de lokaal id in de dataset attribute "numBuilding" om daar de lokaalid in te bewaren.
+                                        
+                                        var namebuilding = document.getElementById("namebuilding")
+                                        namebuilding.textContent = id;
+                                        namebuilding.dataset.numBuilding = id;
+            
+```
