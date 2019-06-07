@@ -79,7 +79,7 @@ Vervolgens gebruik ik de volgende functies om een webmap applicatie op te bouwen
         ], function (SceneView, WebScene, Search, GraphicsLayer, Graphic, Query, QueryTask, Extent, i18n, LayerList, Polygon, esriRequest, dom, on, domReady) {
 ```
 
-# Informatie over het opbouwen van de User Interface
+# Global informatie over de data: BRT Linked Data van het Kadaster
 
 Voor mijn webmap-applicate bevraag ik Top10NL/BRT Linked Data van het Kadaster. Normaliter kun je gewoon via de volgende SPARQL endpoint van het Kadaster Linked Data bevragen: https://data.pdok.nl/sparql.
 
@@ -97,6 +97,8 @@ In mijn webmap-applicatie worden drie verschillende SPARQL queries bevraagd:
 
 Binnen de **body** sectie creëer ik eerst een **div** ("viewDiv") waarbinnen de webmap applicatie en de zijbalk ingevoerd zullen worden. Informatie over de styling van de elementen is te vinden in het CSS bestand en zal niet erg op toegespitst worden.
 Vervolgens binnen de div wordt een **andere div** ("sidebar") gecreëerd wat de zijbalk zal vertegenwoordigen.
+
+# De eerste SPARQL query: script en user interface
 
 Het eerste gedeelte van de body sectie ziet er als volgt uit en betreft de layout voor de informatie over het geselecteerde gebouw zelf.
 
