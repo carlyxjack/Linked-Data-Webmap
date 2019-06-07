@@ -208,9 +208,11 @@ Daarbij zijn de volgende coderegels in ieder geval daarbij nodig. Lees gerust de
                                         namebuilding.dataset.numBuilding = id;
             
 ```
-Na het klikken van het gebouwen willen eigenlijk een request sturen naar de volgende SPARQL endpoint : https://data.pdok.nl/sparql. Echter daarbij moeten we eerst een SPARQL query opstellen om die vervolgens mee te geven aan zo een reques.
+Na het klikken van een gebouw willen we eigenlijk een request sturen naar de volgende SPARQL endpoint : https://data.pdok.nl/sparql. Echter daarbij moeten we eerst een SPARQL query opstellen om die vervolgens mee te kunnen geven aan zo een request.
 
-De eerste query is grotendeels ingevuld, zoals in het onderstaande code-blok te zien is, maar wordt deels aangevuld door het **lokaalid** dat we hebben gekregen wanneer we op een gebouw hebben geklikt. Informatie over de SPARQL wordt in deze handleiding niet toegespitst.
+De eerste query is grotendeels ingevuld, zoals in het onderstaande code-blok te zien is, maar wordt deels aangevuld door het **lokaalid** dat we hebben gekregen wanneer we op een gebouw hebben geklikt. Informatie het schrijven van een SPARQL query wordt in deze handleiding niet toegespitst. Het kadaster heeft een tutorial beschikbaar om de basissyntax van SPARQL onder de knie te krijgen:
+https://data.labs.pdok.nl/presentations/Kadaster-SPARQL-Tutorial.html#/
+
 
 ```javascript
                                         var query1 = "PREFIX top10nl: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
@@ -260,7 +262,7 @@ Uiteindelijk kunnen we de uiteindelijke request naar de SPARQL endpoint sturen
                                             var dic = {} // Het maken van een lege dictionary waar de unieke waarden van de reponse van de SPARQL endpoint aan toegevoegd worden
 
                                             var entries = document.getElementById('entries'); // het ophalen van de HTML element entries
-                                            entries.innerHTML = ""; \\ het leegmaken van de entries inhoud indien er nog inhoud van de vorige request erin nog verwerkt is.
+                                            entries.innerHTML = ""; // het leegmaken van de entries inhoud indien er nog inhoud van de vorige request erin nog verwerkt is.
 
                                             for (i = 0; i < response.data.results.bindings.length; i++) {
                                                 var name = response.data.results.bindings[i].name.value;
@@ -272,11 +274,6 @@ Uiteindelijk kunnen we de uiteindelijke request naar de SPARQL endpoint sturen
 
                                             }
 
-
-                                            // str = JSON.stringify(dic);
-                                            // console.log(str);
-
-                                            // console.log(uniqueItems.length);
                                             // Heb een tweede for-loop gebruikt om over de unieke waarden te loopen, geen idee of het gebruik van een tweede for-loop wel of niet efficiënt is.
                                             for (var key in dic) {
 
