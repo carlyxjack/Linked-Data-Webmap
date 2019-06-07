@@ -5,7 +5,7 @@ Deze repository is voor de mensen die graag een webmap applicatie willen bouwen 
 Waarschuwing: Men is vrij om de code te (her)gebruiken, maar bij maken van de webmap applicatie is geen rekening gehouden met aspecten, zoals beveiliging. Verder zou iemand de webmap applicatie gebruiksvriendelijker of meer esthetisch kunnen maken. Aangezien ik pas een beginner ben op het gebied van JavaScript, HTML en CSS, kan het zich voordoen dat de code die ik heb gebruikt/geschreven niet geheel volgens standaard is. Het is dus geadviseerd om de code waarschijnlijk nog aan te passen/ laten nakijken door iemand
 met meer ervaring op het gebied van webdevelopment en SPARQL voor daadwerkelijk gebruik.
 
-# Korte Handleiding Webmap applicatie
+# Handleiding Webmap applicatie
 
 Hierbij zal ik kort toelichten hoe ik de webmap-applicatie heb opgebouwd. 
 Begin zoals gewoonlijk met het opbouwen van een HTML file in een code editor, zoals in het code-block hieronder.
@@ -52,4 +52,50 @@ Ik gebruik voor mijn webmap-applicatie de 4.10 versie, maar deze kan momenteel u
 
 </html>
 ``` 
+
+Vervolgens gebruik ik de volgende functies om een webmap applicatie op te bouwen binnen een <script> </script>. Meer informatie over deze functies is te vinden via de volgende link: https://developers.arcgis.com/javascript/latest/api-reference/ . Het daadwerkelijke gebruik van de ArcGIS functies zal ik naderhand toelichten. Eerst zal ik toelichten hoe ik deels de user interface van de webmap-applicatie heb opgebouwd.
+
+```
+    <script>
+        require([
+            "esri/views/SceneView",
+            "esri/WebScene",
+            "esri/widgets/Search",
+            "esri/layers/GraphicsLayer",
+            "esri/Graphic",
+            "esri/tasks/support/Query",
+            "esri/tasks/QueryTask",
+            "esri/geometry/Extent",
+            "dojo/i18n!esri/nls/common",
+            "esri/widgets/LayerList",
+            "esri/geometry/Polygon",
+            "esri/request",
+            "dojo/dom",
+            "dojo/on",
+            "dojo/domReady!"
+
+        ], function (SceneView, WebScene, Search, GraphicsLayer, Graphic, Query, QueryTask, Extent, i18n, LayerList, Polygon, esriRequest, dom, on, domReady) {
+```
+
+# Informatie over het opbouwen van de User Interface
+
+Voor mijn webmap-applicate bevraag ik Top10NL/BRT Linked Data van het Kadaster. Normaliter kun je gewoon via de volgende SPARQL endpoint van het Kadaster Linked Data bevragen: https://data.pdok.nl/sparql.
+
+**Een SPARQL endpoint is een webservice die een SPARQL query kan ontvangen en probeert de desbetreffende informatie uit een graph te halen en vervolgens iets doet met de gevonden resultaten.** 
+
+Echter dit vereist dat een gebruiker zelf een SPARQL query zou moeten kunnen schrijven, daarom om te voorkomen dat een gebruiker zelf de SPARQL query moet opstellen, is de webmap-applicatie gemaakt.
+
+Van de BRT Linked data zal ik voornamelijk focussen op gebouwen. 
+In mijn webmap-applicatie worden drie verschillende SPARQL queries bevraagd:
+
+  1. Informatie over het geselecteerd BRT-gebouw zelf
+  2. CBS-informatie op wijk/buurt niveau waarbinnen het geselecteerde gebouw valt
+  3. Informatie ove andere gebouwen (bepaald door de gebruiker) binnen een gegeven afstand van het geselecteerde gebouw
+
+Om ervoor te zorgen dat een gebruiker zelf niet de SPARQL query hoeft op te schrijven, 
+
+
+
+
+
 
