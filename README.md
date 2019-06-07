@@ -301,10 +301,6 @@ Deze variabelen worden in een dictionary opgeslagen en vervolgens loop ik de dic
                                                 }
 
 
-
-
-
-
                                                 entry.appendChild(link); // het toevoegen van de link aan een lijst element
                                                 entries.appendChild(entry); // het toevoegen van de entry aan de entries element
                                                 entries.appendChild(whiteline);
@@ -335,3 +331,43 @@ Deze variabelen worden in een dictionary opgeslagen en vervolgens loop ik de dic
                     });
             });
 ```
+
+# De tweede SPARQL query
+
+We hebben de user interface van de eerste SPARQL query in de body sectie behandeld en eveneens de bijbehorende script. Nu zal ik proberen om stapsgewijs toe te lichten hoe ik de user interface van de tweede SPARQL query en de bijbehorende script hebt opgesteld.
+
+Om te beginnen heb ik een overkoepelende div aangemaakt die de user interface voor de tweede en de derde SPARQL query zal beslaan. 
+De aanmaak van deze aparte div, is om ervoor zorgen dat deze div in het begin niet te zien is, maar pas nadat de eerste SPARQL is uitgevoerd, vervolgens wel wordt weergeven.
+
+De styling van de user interface van de tweede SPARQL query is weergeven onderaan en valt onder de **visuals** div. Lees de aanvullende opmerkingen voor de functies van de codelijnen. Een paar aandachtspunten: Om uiteindelijk de tweede SPARQL query zodadelijk te kunnen opstellen zijn er bepaalde informatie van de gebruiker nodig zoals: 
+
+    1. Op welk niveau wil je de CBS-gegevens opvragen?
+    2. Wat voor CBS informatie zou je willen opvragen?
+
+Voor het eerste punt wordt er een select tag aangemaakt met de volgende twee options: 1) "Wijk", 2) "Buurt".
+
+```html
+            <div id="otherInfo" style="display: none"> // aanvankelijk is deze div niet zichtbaar
+                <div id="visuals"> // div die de tweede SPARQL query zal beslaan
+                    <h3>Demografische gegevens opvragen</h3>
+                    <p></p>
+                    <label> Kies op welk niveau je de demografische gegevens zou willen opvragen?</label>
+                    <select id="demographicLevel">
+                        <option value="Wijk">Wijk</option>
+                        <option value="Buurt">Buurt</option>
+                    </select>
+
+                    <label>Welke van de volgende demografische gegevens zou je willen opvragen?</label>
+
+                    <p></p>
+
+                    <div id="demographics"></div>
+
+                    <p></p>
+
+                    <button id="demographic">Klik hier om de demografische gegevens op te vragen</button>
+                    <div id="barchart"></div>
+
+                </div>
+```
+Voor het tweede punt om bepaalde CBS informatie te kunnen bevragen, is er meer werk vereist. 
