@@ -255,29 +255,30 @@ Vervolgens gaan we een de parameters opgeven die nodig zijn om aan request zodad
                                         };
 ```
 
-Uiteindelijk kunnen we de uiteindelijke request naar de SPARQL endpoint sturen
+Uiteindelijk kunnen we de  request naar de SPARQL endpoint sturen. Lees de aanvullende opmerkingen voor de functies van de codelijnen.
+Hierbij wil ik verder vermelden dat ik uiteindelijk de waarden (**value**) van de variabelen die ik bevraag in de SPARQL query terugkrijg: **name** en **object** vervolgens in variabelen bewaar.
+Deze variabelen worden in een dictionary opgeslagen en vervolgens loop ik de dictionary af om uiteindelijk de waarden in de dictionary toe te voegen aan de **entries** die aanvankelijk leeg was.
 
 ```javascript
-     esriRequest("https://data.pdok.nl/sparql", options).then(function (response) {
+     esriRequest("https://data.pdok.nl/sparql", options).then(function (response) { // het halen van data van de sparqlendpoint: https://data.pdok.nl/sparql
                                             var dic = {} // Het maken van een lege dictionary waar de unieke waarden van de reponse van de SPARQL endpoint aan toegevoegd worden
 
                                             var entries = document.getElementById('entries'); // het ophalen van de HTML element entries
-                                            entries.innerHTML = ""; // het leegmaken van de entries inhoud indien er nog inhoud van de vorige request erin nog verwerkt is.
+                                            entries.innerHTML = ""; // het leegmaken van de inhoud van entries
 
                                             for (i = 0; i < response.data.results.bindings.length; i++) {
-                                                var name = response.data.results.bindings[i].name.value;
-                                                var value = response.data.results.bindings[i].object.value;
-                                                dic[name] = value;
-
+                                                var name = response.data.results.bindings[i].name.value; // waarde van name bewaren
+                                                var value = response.data.results.bindings[i].object.value; //waarde van object bewaren
+                                                dic[name] = value; // name wordt key in de dic en value de waarde van de name key
 
 
 
                                             }
+                                            
 
-                                            // Heb een tweede for-loop gebruikt om over de unieke waarden te loopen, geen idee of het gebruik van een tweede for-loop wel of niet efficiënt is.
                                             for (var key in dic) {
 
-                                                var entry = document.createElement('li');
+                                                var entry = document.createElement('li'); // het maken van een lijst element
                                                 entry.textContent = key + ": ";
                                                 var value = dic[key];
                                                 var start = value.startsWith("http");
@@ -304,16 +305,16 @@ Uiteindelijk kunnen we de uiteindelijke request naar de SPARQL endpoint sturen
 
 
 
-                                                entry.appendChild(link);
-                                                entries.appendChild(entry);
+                                                entry.appendChild(link); // het toevoegen van de link aan een lijst element
+                                                entries.appendChild(entry); // het toevoegen van de entry aan de entries element
                                                 entries.appendChild(whiteline);
 
 
 
 
                                             }
-                                            var other = document.getElementById('otherInfo');
-                                            other.style.display = "";
+                                            var other = document.getElementById('otherInfo'); 
+                                            other.style.display = ""; // ervoor zorgen dat de user interface die nodig zijn om de andere twee SPARQL queries uit te voeren, vervolgens worden laten zien.
 
 
 
