@@ -181,7 +181,7 @@ Als extraatje heb ik een searchWidget gemaakt en eveneens gevoegd in de webmap-a
 
 Deels van de webmap-applicatie hebben we net opgebouwd. Echter we willen nu iets doen waarbij er iets gebeurt wanner men op één van de 
 gebouwen klikt. 
-Daarbij zijn de volgende coderegels in ieder geval daarbij nodig.
+Daarbij zijn de volgende coderegels in ieder geval daarbij nodig. Lees gerust de aanvullende commentaar voor de functies van de coderegels.
 
 ```javascript
           scene.when(function () {
@@ -201,10 +201,139 @@ Daarbij zijn de volgende coderegels in ieder geval daarbij nodig.
                                     const graphic = response.results.filter(function (result) { \\ de graphic 
                                         
                                         var id = result.graphic.attributes.lokaalid; \\ het verkrijgen van het id van de graphic, in dit geval zijn we geïnteresseerd in de lokaalid
-                                        // Vervolgens haal je de "namebuilding" HTML element op en bewaar de lokaal id in de dataset attribute "numBuilding" om daar de lokaalid in te bewaren.
+                                        // Vervolgens haal je de "namebuilding" HTML element op en bewaar je de lokaalid in de dataset attribute "numBuilding" om daar de lokaalid vervolgens in te bewaren. Dit id halen we op wanneer we de tweede en de derde SPARQL query gaan uitvoeren.
                                         
                                         var namebuilding = document.getElementById("namebuilding")
                                         namebuilding.textContent = id;
                                         namebuilding.dataset.numBuilding = id;
             
+```
+Na het klikken van het gebouwen willen eigenlijk een request sturen naar de volgende SPARQL endpoint : https://data.pdok.nl/sparql. Echter daarbij moeten we eerst een SPARQL query opstellen om die vervolgens mee te geven aan zo een reques.
+
+De eerste query is grotendeels ingevuld, zoals in het onderstaande code-blok te zien is, maar wordt deels aangevuld door het **lokaalid** dat we hebben gekregen wanneer we op een gebouw hebben geklikt. Informatie over de SPARQL wordt in deze handleiding niet toegespitst.
+
+```javascript
+                                        var query1 = "PREFIX top10nl: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+                                                    PREFIX brt: <http://brt.basisregistraties.overheid.nl/def/top10nl#>\n\
+                                                    PREFIX def: <http://betalinkeddata.cbs.nl/def/83487NED#>\n\
+                                                    PREFIX dimension: <http://betalinkeddata.cbs.nl/def/dimension#>\n\
+                                                    PREFIX gemeente: <http://betalinkeddata.cbs.nl/regios/2016/id/gemeente-geografisch/>\n\
+                                                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\
+                                                    PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n\
+                                                    PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n\
+                                                    PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/>\n\
+                                                    PREFIX cbs: <http://betalinkeddata.cbs.nl/def/cbs#>\n\
+                                                    PREFIX cs: <http://purl.org/vocab/changeset/schema#>\n\
+                                                    PREFIX cb: <http://cbasewrap.ontologycentral.com/vocab#>\n\
+                                                    \n\
+                                                    SELECT DISTINCT ?object ?name"
+
+
+                                        query3 = " where  {\n\
+                                                    VALUES ?s {<http://brt.basisregistraties.overheid.nl/top10nl/id/gebouw/"+ id + ">  }\n\
+                                                ?s ?predicate ?object.\n\
+                                                ?predicate rdfs:label ?name.\n\
+                                                ?s geo:hasGeometry/geo:asWKT ?Gebouwgeo.}"
+
+
+                                        query3 = query1.concat(query3);
+```
+
+
+Vervolgens gaan we een de parameters opgeven die nodig zijn om aan request zodadelijk mee te geven. 
+
+```
+                                        var options = {
+                                            body: query3,
+                                            responseType: 'json',
+                                            headers: {
+                                                Accept: 'application/sparql-results+json',
+                                                'Content-Type': 'application/sparql-query'
+                                            }
+                                        };
+```
+
+Uiteindelijk kunnen we de uiteindelijke request naar de SPARQL endpoint sturen
+
+```
+     esriRequest("https://data.pdok.nl/sparql", options).then(function (response) {
+                                            var dic = {} // Het maken van een lege dictionary waar de unieke waarden van de reponse van de SPARQL endpoint aan toegevoegd worden
+
+                                            var entries = document.getElementById('entries'); // het ophalen van de HTML element entries
+                                            entries.innerHTML = ""; \\ het leegmaken van de entries inhoud indien er nog inhoud van de vorige request erin nog verwerkt is.
+
+                                            for (i = 0; i < response.data.results.bindings.length; i++) {
+                                                var name = response.data.results.bindings[i].name.value;
+                                                var value = response.data.results.bindings[i].object.value;
+                                                dic[name] = value;
+
+
+
+
+                                            }
+
+
+                                            // str = JSON.stringify(dic);
+                                            // console.log(str);
+
+                                            // console.log(uniqueItems.length);
+                                            // Heb een tweede for-loop gebruikt om over de unieke waarden te loopen, geen idee of het gebruik van een tweede for-loop wel of niet efficiënt is.
+                                            for (var key in dic) {
+
+                                                var entry = document.createElement('li');
+                                                entry.textContent = key + ": ";
+                                                var value = dic[key];
+                                                var start = value.startsWith("http");
+
+                                                var link = document.createElement('a');
+                                                link.textContent = value
+                                                link.dataset.identifier = value
+                                                var whiteline = document.createElement('p');
+
+                                                if (start) {
+                                                    link.style.textDecoration = "underline";
+
+                                                    link.href = value;
+                                                    link.target = "_blank";
+
+                                                }
+                                                else {
+                                                    link.href = '#'
+                                                    link.style.pointerEvents = "none";
+                                                }
+
+
+
+
+
+
+                                                entry.appendChild(link);
+                                                entries.appendChild(entry);
+                                                entries.appendChild(whiteline);
+
+
+
+
+                                            }
+                                            var other = document.getElementById('otherInfo');
+                                            other.style.display = "";
+
+
+
+                                        });
+
+
+
+                                    });
+
+
+                                });
+                        });
+
+
+
+
+
+                    });
+            });
 ```
