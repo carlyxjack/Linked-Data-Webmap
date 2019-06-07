@@ -341,8 +341,8 @@ De aanmaak van deze aparte div, is om ervoor zorgen dat deze div in het begin ni
 
 De styling van de user interface van de tweede SPARQL query is weergeven onderaan en valt onder de **visuals** div. Lees de aanvullende opmerkingen voor de functies van de codelijnen. Een paar aandachtspunten: Om uiteindelijk de tweede SPARQL query zodadelijk te kunnen opstellen zijn er bepaalde informatie van de gebruiker nodig zoals: 
 
-    1. Op welk niveau wil je de CBS-gegevens opvragen?
-    2. Wat voor CBS informatie zou je willen opvragen?
+1. Op welk niveau wil je de CBS-gegevens opvragen?
+2. Wat voor CBS informatie zou je willen opvragen?
 
 Voor het eerste punt wordt er een select tag aangemaakt met de volgende twee options: 1) "Wijk", 2) "Buurt".
 
@@ -371,3 +371,53 @@ Voor het eerste punt wordt er een select tag aangemaakt met de volgende twee opt
                 </div>
 ```
 Voor het tweede punt om bepaalde CBS informatie te kunnen bevragen, is er meer werk vereist. 
+Ten eerste moet je een idee hebben over welke CBS gegevens beschikbaar zijn en hoe je de CBS gegevens zou willen aanroepen in een SPARQL query. Daarvoor heb je de exacte namen van de CBS eigenschappen nodig en deze zijn te vinden op de volgende link: https://betalinkeddata.cbs.nl/def/83487NED# .
+
+Echter de daadwerkelijke namen van de CBS gegevens die nodig zijn om in een SPARQL query aan te roepen, zijn niet de namen die je aan gebruikers zou willen laten zien en verder horen bepaalde eigenschappen bij elkaar, zoals bijvoorbeeld de volgende eigenschappen : 
+
+1. oppervlakte_OppervlakteLand
+2. oppervlakte_OppervlakteWater
+3. oppervlakte_OppervlakteTotaal
+
+Wat ik in mijn code heb gedaan is eerst het maken van een lijst die de gebruiker te zien krijgt. Deze is uiteraard gebaseerd op de namen
+die zijn opgegeven bij het CBS, maar zijn iets leesvriendelijker gemaakt. Ik definieer eerst de functie in de **script** tag die het mogelijk maakt om van de lijst zodadelijk een **select** tag aan te maken en de bijbehorende **options** 
+
+```javascript
+            var Index = 0;
+
+            //Create array of options to be added
+            var createList = function (array, idname) {
+                var idname = document.getElementById(idname);
+                //Create and append select list
+                var selectList = document.createElement("select");
+                selectList.setAttribute("id", "Select" + Index++);
+                idname.appendChild(selectList);
+
+                //Create and append the options
+                for (var i = 0; i < array.length; i++) {
+                    var option = document.createElement("option");
+                    option.setAttribute("value", array[i]);
+                    option.text = array[i];
+                    selectList.appendChild(option);
+
+
+                }
+
+            }
+```
+
+Vervolgens creëer ik een lijst met leesvriendelijke namen (niet te lang en geen underscores) van de CBS eigenschappen. 
+De lijst moet eveneens uit verzamelnamen bestaan zoals ik reeds heb aangegeven en moet dus niet alle eigenschappen meenemen die zoals weergeven zijn in de volgende link: https://betalinkeddata.cbs.nl/def/83487NED. Dus in plaats van om oppervlakte Totaal, oppervlakte Land en Oppervlakte Water in de lijst op te nemen, kun je gewoon de naam Oppervlakte gebruiken. Het idee is dat de gebruiker  klikt op bijvoorbeeld Oppervlakte, dan vervolgens een visualizatie te zien is van alle eigenschappen gerelateerd aan Oppervlakte. Hoe dit mogelijk is, zal ik naderhand toelichten. 
+Ik gebruik dus de bovenste functie om de **select** tag en de bijbehorende **options** te creëeren op basis van de lijst.
+
+
+```javascript
+        var arrayQuery = ["Bedrijfsvestigingen", "Aantal Inwoners", "Burgelijke Staat", "Geboorte/sterfte", "Geslacht", "Leeftijdsgroepen", "Particuliere Huishoudens", "Aardgasverbruik",
+                "Elektriciteitsverbruik", "NabijheidsVoorzieningen", "Oppervlakte Land/Water", "Postcode Dekking", "Meest voorkomende postcode", "Personen per soort uitkering", "Mate van Stedelijkheid",
+                "Omgevingsadressendichtheid", "Gemiddelde Woningwaarde", "Woning naar Bewoning", "Woning naar Bouwjaar", "Woning naar Eigendom", "Woning naar Type", "Woningvoorraad"];
+                
+         createList(arrayQuery, "demographics");  // gebruik de functie createList om uiteindelijk een select tag met de bijbehorende options op basis van een gegeven lijst te creëeren.         
+                
+```
+
+
